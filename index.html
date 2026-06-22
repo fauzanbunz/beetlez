@@ -1,1 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Pharaoh's Tomb</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Playfair+Display:ital@0;1&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden; /* Prevent scrolling, keep it immersive */
+            background-color: #000; /* Fallback to pitch black */
+            font-family: 'Cinzel', serif; /* Egyptian/Antique looking font */
+            cursor: none; /* Hide default cursor to replace it with the torch */
+            user-select: none; /* Prevent text selection to maintain immersion */
+        }
 
+        /* The container holding the background image */
+        .tomb-wall {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            /* Menggunakan gambar tembok yang Anda berikan */
+            background-image: url('https://raw.githubusercontent.com/fauzanbunz/beetlez/main/wall.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        /* * The overlay that creates darkness and the torch effect.
+         * It sits perfectly on top of the .tomb-wall.
+         * We use CSS variables updated by JS for position and dynamic flame effect.
+         */
+        .darkness-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Let clicks pass through the darkness */
+            z-index: 10; /* Must be above the background but below the button */
+            
+            /* Initial variables */
+            --cursor-x: 50vw;
+            --cursor-y: 50vh;
+            /* Dynamic variables for flame effect */
+            --torch-radius: 250px;
+            --torch-wobble-x: 0px;
+            --torch-wobble-y: 0px;
+
+            /* * The magic: A radial gradient that is transparent in the center (the torch light)
+             * and completely black on the outside (the unlit tomb).
+             * The center position and radius are dynamically updated to simulate a flickering flame.
+             */
+            background: radial-gradient(
+                circle var(--torch-radius) at calc(var(--cursor-x) + var(--torch-wobble-x)) calc(var(--cursor-y) + var(--torch-wobble-y)),
+                rgba(0, 0, 0, 0.2) 0%, /* Pusat cahaya dibuat 20% lebih gelap */
+                rgba(255, 140, 0, 0.12) 30%, /* Inner glow diredupkan */
+                rgba(255, 69, 0, 0.08) 45%, /* Outer glow diredupkan */
+                rgba(0, 0, 0, 0.8) 60%, /* Bayangan menjadi gelap lebih cepat */
+                rgba(0, 0, 0, 0.98) 80%,
+                rgba(0, 0, 0, 1) 100%
+            );
+            /* No transition here to allow for instant, jerky flame movements */
+        }
+
+        /* Custom cursor styling (a tiny flame/spark indicator) */
+        .custom-cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #fffbd1 0%, #ff8c00 50%, transparent 100%);
+            pointer-events: none; /* Don't block clicks */
+            transform: translate(-50%, -50%); /* Center on mouse */
+            z-index: 50;
+            mix-blend-mode: screen; /* Makes it look glowing */
+            filter: blur(2px);
+            transition: width 0.2s, height 0.2s, background 0.2s; /* Animate on hover */
+        }
+
+        /* Styling for the main button - now smaller and hidden by default */
+        .curse-button {
+            position: relative;
+            z-index: 20; /* Keep it above the darkness overlay */
+            background: transparent;
+            color: #d4af37; /* Gold color */
+            border: 1px solid #d4af37;
+            padding: 0.5rem 1rem; /* Smaller padding */
+            font-size: 0.9rem; /* Smaller font size */
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: bold;
+            cursor: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3), inset 0 0 5px rgba(212, 175, 55, 0.1);
+            text-shadow: 0 0 5px rgba(212, 175, 55, 0.6);
+            backdrop-filter: blur(2px);
+            overflow: hidden;
+            
+            /* Hidden by default */
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Class to show the button when the cursor is near */
+        .curse-button.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .curse-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .curse-button:hover::before {
+            left: 100%; /* Shine effect on hover */
+        }
+
+        .curse-button:hover {
+            background: rgba(212, 175, 55, 0.1);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.6), inset 0 0 10px rgba(212, 175, 55, 0.3);
+            transform: scale(1.05);
+        }
+
+        /* Message box styling */
+        #message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: rgba(10, 10, 10, 0.95);
+            border: 1px solid #d4af37;
+            padding: 2rem;
+            text-align: center;
+            color: #fff;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            box-shadow: 0 0 50px rgba(0,0,0,1), 0 0 20px rgba(212, 175, 55, 0.2);
+            max-width: 800px; /* Lebar maksimal box agar teks rapi */
+            width: 90%;
+            max-height: 90vh; /* Hindari terpotong layar kecil */
+            overflow-y: auto; /* Bisa scroll jika konten panjang */
+        }
+
+        #message-box.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+            pointer-events: auto;
+        }
+
+        #message-box p {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            color: #ccc;
+        }
+
+        #message-box .lore-title {
+            font-family: 'Cinzel', serif;
+            font-weight: bold;
+            color: #d4af37;
+            font-size: 1.4rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        #message-box .lore-text {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+        
+        #message-box .lore-quote {
+            font-style: italic;
+            color: #d4af37;
+            margin-top: 1rem;
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* Sound Control Button */
+        .sound-control {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(10, 10, 10, 0.6);
+            border: 1px solid #d4af37;
+            color: #d4af37;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+        }
+
+        .sound-control:hover {
+            background: rgba(212, 175, 55, 0.2);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+            transform: scale(1.1);
+        }
+
+        /* Canvas untuk kumbang */
+        #beetleCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Tidak menghalangi klik */
+            z-index: 5; /* Berada DI BAWAH kegelapan (z-index 10) agar hanya terlihat saat disorot */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- The physical custom cursor dot -->
+    <div class="custom-cursor" id="cursor"></div>
+
+    <!-- Background Music -->
+    <audio id="bgMusic" loop>
+        <source src="https://raw.githubusercontent.com/fauzanbunz/beetlez/main/Mummy%20At%20Noon.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Sound Control Button -->
+    <button id="muteBtn" class="sound-control">
+        <!-- Ikon Suara Menyala (Awalnya Tampil) -->
+        <svg id="icon-unmuted" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5 10v4a2 2 0 002 2h2.236l4.328 4.329a1 1 0 001.707-.707V4.379a1 1 0 00-1.707-.707L9.236 10H7a2 2 0 00-2 2z"></path>
+        </svg>
+        <!-- Ikon Suara Mati (Awalnya Sembunyi) -->
+        <svg id="icon-muted" class="hidden w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clip-rule="evenodd"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
+        </svg>
+    </button>
+
+    <!-- The main container -->
+    <main class="tomb-wall">
+        
+        <!-- Canvas untuk Kumbang -->
+        <canvas id="beetleCanvas"></canvas>
+
+        <!-- The overlay that applies the torch light effect -->
+        <div class="darkness-overlay" id="darkness"></div>
+
+        <!-- The interactive button, now smaller and hidden until approached -->
+        <button class="curse-button" id="openCurseBtn">
+            Open the Curse
+        </button>
+
+    </main>
+
+    <!-- Hidden message box for when the curse is opened -->
+    <div id="message-box">
+        <img src="https://raw.githubusercontent.com/fauzanbunz/beetlez/main/vdsvdd.png" alt="Curse Title" class="mx-auto mb-4 max-w-full h-auto" style="max-height: 100px;">
+        <p>You have awakened that which slumbered in the sands for millennia...</p>
+        
+        <p class="lore-title">In the Age Before Light</p>
+        <p class="lore-text">
+            Before the first sun crested the horizon, the world was an endless ocean of black soil — formless, silent, and heavy with potential. The gods grew restless. They reached into the primordial dark and pulled forth a creature small enough to hold in a clenched fist, yet powerful enough to reshape the earth beneath their feet.
+        </p>
+        <p class="lore-text">
+            This was Khabiru — the First Beetle. With the strength of a thousand oxen compressed into an armored shell, Khabiru rolled the great celestial orb across the void and set it ablaze. That rolling orb became the sun. And so beetles became gods.
+        </p>
+        <p class="lore-quote">
+            "To roll forward without ceasing — that is the oldest prayer ever uttered."
+            <br>— The Book of Khabiru, First Verse
+        </p>
+
+        <button id="closeMsgBtn" class="mt-6 px-4 py-2 border border-gray-600 text-gray-400 hover:text-white hover:border-white transition-colors cursor-none">
+            Accept Fate
+        </button>
+    </div>
+
+    <script>
+        const darkness = document.getElementById('darkness');
+        const cursor = document.getElementById('cursor');
+        const curseBtn = document.getElementById('openCurseBtn');
+        const messageBox = document.getElementById('message-box');
+        const closeMsgBtn = document.getElementById('closeMsgBtn');
+
+        let cursorX = window.innerWidth / 2;
+        let cursorY = window.innerHeight / 2;
+
+        // Function to animate the torch flickering effect
+        function animateTorch() {
+            // Generate random values for radius flicker and position wobble
+            const flickerRadius = 240 + Math.random() * 20; // Radius between 240px and 260px
+            const wobbleX = (Math.random() - 0.5) * 10; // Wobble between -5px and 5px
+            const wobbleY = (Math.random() - 0.5) * 10;
+
+            // Apply new values to CSS variables
+            darkness.style.setProperty('--torch-radius', `${flickerRadius}px`);
+            darkness.style.setProperty('--torch-wobble-x', `${wobbleX}px`);
+            darkness.style.setProperty('--torch-wobble-y', `${wobbleY}px`);
+
+            // Request the next animation frame for a smooth loop
+            requestAnimationFrame(animateTorch);
+        }
+
+        // Logic to update the torch location and check for button intersection
+        function updateTorchLocation(e) {
+            // Handle touch devices vs mouse
+            if (e.type && e.type.includes('touch')) {
+                cursorX = e.touches[0].clientX;
+                cursorY = e.touches[0].clientY;
+            } else if (e.clientX !== undefined) {
+                cursorX = e.clientX;
+                cursorY = e.clientY;
+            }
+
+            // Update CSS variables for cursor position
+            darkness.style.setProperty('--cursor-x', `${cursorX}px`);
+            darkness.style.setProperty('--cursor-y', `${cursorY}px`);
+
+            // Move the custom cursor dot
+            cursor.style.left = `${cursorX}px`;
+            cursor.style.top = `${cursorY}px`;
+
+            // Check if cursor is over the button area to show it
+            const btnRect = curseBtn.getBoundingClientRect();
+            // Use a slightly larger detection area for better UX
+            const detectionPadding = 50; 
+            if (
+                cursorX >= btnRect.left - detectionPadding &&
+                cursorX <= btnRect.right + detectionPadding &&
+                cursorY >= btnRect.top - detectionPadding &&
+                cursorY <= btnRect.bottom + detectionPadding
+            ) {
+                curseBtn.classList.add('show');
+                // Change cursor style when near the button
+                cursor.style.width = '25px';
+                cursor.style.height = '25px';
+                cursor.style.background = 'radial-gradient(circle, #ff4500 0%, #8b0000 60%, transparent 100%)';
+            } else {
+                curseBtn.classList.remove('show');
+                // Reset cursor style
+                cursor.style.width = '20px';
+                cursor.style.height = '20px';
+                cursor.style.background = 'radial-gradient(circle, #fffbd1 0%, #ff8c00 50%, transparent 100%)';
+            }
+        }
+
+        // Listen for mouse movements
+        document.addEventListener('mousemove', updateTorchLocation);
+        
+        // Listen for touch movements for mobile compatibility
+        document.addEventListener('touchmove', updateTorchLocation);
+        document.addEventListener('touchstart', updateTorchLocation);
+
+        // Handle opening the curse (Button Click)
+        curseBtn.addEventListener('click', () => {
+            // Visual effect: flash the screen
+            darkness.style.background = 'rgba(255, 255, 255, 0.8)';
+            
+            setTimeout(() => {
+                // Restore darkness but keep the box open, make light angry red AND keep the torch animation
+                darkness.style.background = `radial-gradient(
+                    circle var(--torch-radius) at calc(var(--cursor-x) + var(--torch-wobble-x)) calc(var(--cursor-y) + var(--torch-wobble-y)),
+                    rgba(255, 0, 0, 0.2) 0%, 
+                    rgba(139, 0, 0, 0.4) 40%,
+                    rgba(0, 0, 0, 0.85) 60%,
+                    rgba(0, 0, 0, 1) 100%
+                )`; 
+                
+                messageBox.classList.add('show');
+                curseBtn.style.display = 'none'; // Hide the button permanently
+            }, 150);
+        });
+
+        // Handle closing the message
+        closeMsgBtn.addEventListener('click', () => {
+             messageBox.classList.remove('show');
+             // Kembalikan efek obor ke warna aslinya setelah pesan ditutup
+             darkness.style.background = '';
+        });
+
+        // --- Logika Audio Latar Belakang ---
+        const bgMusic = document.getElementById('bgMusic');
+        const muteBtn = document.getElementById('muteBtn');
+        const iconUnmuted = document.getElementById('icon-unmuted');
+        const iconMuted = document.getElementById('icon-muted');
+
+        let isMuted = false; // Dimulai dalam keadaan tidak mute (autoplay jika bisa)
+
+        muteBtn.addEventListener('click', () => {
+            if (isMuted) {
+                // Mainkan musik
+                bgMusic.play().then(() => {
+                    isMuted = false;
+                    iconMuted.classList.add('hidden');
+                    iconUnmuted.classList.remove('hidden');
+                }).catch(err => {
+                    console.log("Audio tidak dapat diputar:", err);
+                });
+            } else {
+                // Jeda musik
+                bgMusic.pause();
+                isMuted = true;
+                iconUnmuted.classList.add('hidden');
+                iconMuted.classList.remove('hidden');
+            }
+        });
+
+        // Initialize on load
+        window.onload = () => {
+            // Set initial position
+            updateTorchLocation({ clientX: window.innerWidth / 2, clientY: window.innerHeight / 2 });
+            // Start the flame animation loop
+            animateTorch();
+
+            // Coba putar musik secara otomatis
+            bgMusic.play().catch(err => {
+                console.log("Audio autoplay diblokir oleh browser. Pengguna harus berinteraksi dulu.", err);
+                // Jika autoplay gagal, ubah status jadi muted
+                isMuted = true;
+                iconUnmuted.classList.add('hidden');
+                iconMuted.classList.remove('hidden');
+            });
+        };
+
+        // --- Logika Spritesheet Kumbang ---
+        const canvas = document.getElementById('beetleCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Menyesuaikan ukuran canvas ke layar penuh
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas(); // Pastikan ukuran canvas sudah benar sebelum membuat kumbang
+
+        const beetleImg = new Image();
+        // Mengambil gambar dari raw github
+        beetleImg.src = 'https://raw.githubusercontent.com/fauzanbunz/beetlez/main/bweewewewewe.png';
+
+        const beetles = [];
+        const numBeetles = 5; // Jumlah kumbang diubah jadi 5
+        const fleeRadius = 150; // Jarak di mana kumbang mulai kabur dari kursor
+
+        // Membuat 5 kumbang di tengah atas halaman
+        for (let i = 0; i < numBeetles; i++) {
+            // Tentukan titik tengah layar
+            const centerX = window.innerWidth / 2;
+            
+            // Posisi X: di tengah dengan sedikit sebaran acak horizontal
+            let startX = centerX + (Math.random() - 0.5) * 100; // Sebaran acak 100px
+
+            // Posisi Y: di bagian atas halaman (misal 100px dari atas) dengan sedikit sebaran acak vertikal
+            let startY = 100 + Math.random() * 50;
+            
+            beetles.push({
+                x: startX,
+                y: startY,
+                originalX: startX, // Posisi awal (tidak digunakan lagi untuk kembali)
+                originalY: startY,
+                speed: 3 + Math.random() * 2, // Kecepatan kabur
+                angle: Math.random() * Math.PI * 2, // Sudut awal acak
+                isFleeing: false, // Status apakah sedang kabur
+                vx: 0, // Kecepatan X saat kabur
+                vy: 0  // Kecepatan Y saat kabur
+            });
+        }
+
+        let frameCountBeetle = 0;
+
+        function animateBeetles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Tunggu sampai gambar berhasil dimuat
+            if (beetleImg.complete && beetleImg.naturalWidth > 0) {
+                frameCountBeetle++;
+                // Membagi ukuran asli gambar karena berupa spritesheet 2 frame bersampingan
+                const frameWidth = beetleImg.width / 2; 
+                const frameHeight = beetleImg.height;
+                const drawSize = 40; // Ukuran tampilan akhir kumbang di layar (kumbang kecil)
+
+                for (let b of beetles) {
+                    // Hitung jarak ke kursor
+                    let dx = b.x - cursorX;
+                    let dy = b.y - cursorY;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+
+                    // Jika belum kabur dan terkena kursor, mulai kabur
+                    if (!b.isFleeing && dist < fleeRadius) {
+                        b.isFleeing = true;
+                        // Tentukan arah kabur (menjauh dari kursor)
+                        let moveX = (dx / dist) * b.speed;
+                        let moveY = (dy / dist) * b.speed;
+                        b.vx = moveX;
+                        b.vy = moveY;
+                        // Sudut menghadap arah kabur
+                        b.angle = Math.atan2(moveY, moveX);
+                    }
+
+                    // Logika pergerakan dan animasi
+                    if (b.isFleeing) {
+                        // Terus bergerak sesuai arah kabur
+                        b.x += b.vx;
+                        b.y += b.vy;
+
+                        // Gambar dengan animasi (frame berubah-ubah)
+                        let currentFrame = Math.floor(frameCountBeetle / 8) % 2;
+                        ctx.save();
+                        ctx.translate(b.x, b.y);
+                        ctx.rotate(b.angle + Math.PI / 2); 
+                        ctx.drawImage(
+                            beetleImg, 
+                            currentFrame * frameWidth, 0, frameWidth, frameHeight, 
+                            -drawSize / 2, -drawSize / 2, drawSize, drawSize
+                        );
+                        ctx.restore();
+                    } else {
+                        // Diam (tidak bergerak, frame statis)
+                        ctx.save();
+                        ctx.translate(b.x, b.y);
+                        // Gambar frame pertama saja (diam)
+                        ctx.drawImage(
+                            beetleImg, 
+                            0, 0, frameWidth, frameHeight, // Selalu ambil frame ke-0
+                            -drawSize / 2, -drawSize / 2, drawSize, drawSize
+                        );
+                        ctx.restore();
+                    }
+
+                    // Opsional: Reset kumbang yang sudah jauh keluar layar agar muncul lagi
+                    if (b.isFleeing && (b.x < -100 || b.x > canvas.width + 100 || b.y < -100 || b.y > canvas.height + 100)) {
+                        b.isFleeing = false;
+                        b.x = Math.random() * canvas.width;
+                        b.y = Math.random() * canvas.height;
+                    }
+                }
+            }
+            requestAnimationFrame(animateBeetles);
+        }
+        
+        // Memulai animasi kumbang
+        animateBeetles();
+
+    </script>
+</body>
+</html>
