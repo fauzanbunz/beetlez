@@ -16,6 +16,39 @@
             user-select: none; /* Prevent text selection to maintain immersion */
         }
 
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #050505; /* Near black */
+            z-index: 9000; /* Just below the cursor */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 1s ease-in-out;
+        }
+
+        #loadingCanvas {
+            width: 250px; /* Display size on screen. Internal resolution is 500x500 */
+            height: 250px;
+            margin-bottom: 20px;
+        }
+
+        .loading-text {
+            color: #d4af37;
+            font-size: 1.5rem;
+            letter-spacing: 0.2em;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
         /* The container holding the background image */
         .tomb-wall {
             position: fixed; /* Changed to fixed to ensure it stays as base layer */
@@ -23,7 +56,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            /* Menggunakan gambar tembok yang Anda berikan */
+            /* Using the provided wall image */
             background-image: url('https://raw.githubusercontent.com/fauzanbunz/beetlez/main/wall.png');
             background-size: cover;
             background-position: center;
@@ -31,12 +64,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 1; /* Layer paling bawah */
+            z-index: 1; /* Lowest layer */
         }
 
-        /* * The overlay that creates darkness and the torch effect.
-         * It sits perfectly on top of everything.
-         */
+        /* The overlay that creates darkness and the torch effect. */
         .darkness-overlay {
             position: fixed;
             top: 0;
@@ -44,7 +75,7 @@
             width: 100%;
             height: 100%;
             pointer-events: none; /* Let clicks pass through the darkness */
-            z-index: 10; /* Layer paling atas (di atas konten terkutuk) */
+            z-index: 50; /* Top layer for lighting effect */
             
             /* Initial variables */
             --cursor-x: 50vw;
@@ -65,13 +96,13 @@
             );
         }
 
-        /* Custom cursor styling */
+        /* Custom cursor styling (Flame Animation) */
         .cursor-canvas {
             position: fixed;
             top: 0;
             left: 0;
             pointer-events: none;
-            z-index: 60;
+            z-index: 9999; /* Always on top (even above loading screen) */
             mix-blend-mode: screen;
             filter: drop-shadow(0 0 10px rgba(255, 140, 0, 0.5));
         }
@@ -79,7 +110,7 @@
         /* Styling for the main button */
         .curse-button {
             position: relative;
-            z-index: 20; /* Keep it above the darkness overlay initally */
+            z-index: 20; 
             background: transparent;
             color: #d4af37;
             border: 1px solid #d4af37;
@@ -204,7 +235,7 @@
             transform: scale(1.1);
         }
 
-        /* Canvas untuk kumbang */
+        /* Canvas for beetles */
         #beetleCanvas {
             position: fixed;
             top: 0;
@@ -212,216 +243,177 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 7; /* Diubah menjadi 7 agar tampil di atas background informasi */
+            z-index: 7; /* Placed above the info background */
         }
 
-        /* Gaya untuk Canvas Api - DIUBAH POSISINYA JADI ABSOLUTE */
+        /* --- CURSED PAGE STYLES (After accepting fate) --- */
+        #cursed-content {
+            position: absolute; 
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh; /* Locked to 100vh */
+            z-index: 5; 
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            pointer-events: auto; 
+            overflow: hidden; /* Prevent scrolling, lock text on page */
+        }
+        
+        /* Dedicated container for Background Image and Flames */
+        .cursed-background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 4; /* Below text, above initial wall */
+            pointer-events: none; 
+            
+            background-image: url('https://raw.githubusercontent.com/fauzanbunz/beetlez/main/ChatGPT%20Image%2023%20Jun%202026%2C%2009.42.45.png');
+            background-size: cover;
+            background-position: center bottom; 
+            background-repeat: no-repeat;
+        }
+
+        /* Flame Canvas Styles */
         .flame-canvas {
-            position: absolute; /* Mengikuti parent-nya (#cursed-content) */
-            top: 100px; /* Menyesuaikan posisi vertikal agar pas di kuali */
-            pointer-events: none;
-            z-index: 6; /* Di atas kumbang, di bawah kegelapan */
-            /* Mengatur ukuran tampilan agar pas di layar */
-            height: 350px; /* Sedikit diperkecil */
+            position: absolute; 
+            bottom: 24vh; /* Moved up */
+            z-index: 6; 
+            height: 28vh; /* Scales automatically with screen height */
+            min-height: 150px;
+            max-height: 350px;
             width: auto;
-            /* Efek agar terlihat menyatu dengan suasana gelap */
             mix-blend-mode: screen; 
             opacity: 0.9;
             filter: drop-shadow(0 0 20px rgba(255, 140, 0, 0.5));
+            transform-origin: bottom center;
         }
 
         #flameCanvasLeft {
-            left: 8%; /* Jarak dari kiri */
+            left: 12vw; 
         }
 
         #flameCanvasRight {
-            right: 8%; /* Jarak dari kanan */
-            transform: scaleX(-1); /* Membalik api kanan agar simetris */
-        }
-
-        /* --- GAYA BARU UNTUK HALAMAN TERKUTUK --- */
-
-        /* Gaya untuk teks yang terlihat seperti dipahat */
-        .carved-text {
-            color: #4a3c2a; /* Warna cokelat tua gelap untuk bayangan dalam */
-            /* Efek pahatan: bayangan terang di kanan-bawah, bayangan gelap di kiri-atas */
-            text-shadow: 1px 1px 0px rgba(255,255,255,0.15), -1px -1px 2px rgba(0,0,0,0.8);
+            right: 12vw; 
+            transform: scaleX(-1); /* Flip flame horizontally */
         }
         
-        .carved-title {
-             font-family: 'Cinzel', serif;
-             font-weight: bold;
-             margin-bottom: 1.5rem;
-        }
-
-        /* Cursed Content Container */
-        #cursed-content {
-            position: absolute; /* Berubah jadi absolute agar canvas api bisa relatif terhadapnya */
-            top: 0;
-            left: 0;
+        /* Wrapper for locked text content in the center */
+        .cursed-text-content {
+            position: relative;
+            z-index: 10; 
             width: 100%;
-            min-height: 100vh; /* Pastikan minimal setinggi layar agar scroll jalan */
-            /* Z-INDEX PENTING: Di bawah darkness-overlay (10), tapi di atas tomb-wall (1) */
-            z-index: 5; 
-            
-            /* Background Gambar Baru */
-            background-image: url('https://raw.githubusercontent.com/fauzanbunz/beetlez/main/ChatGPT%20Image%2023%20Jun%202026%2C%2009.42.45.png');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            
-            padding-top: 80px;
-            /* overflow-y: auto; HAPUS INI agar scroll ditangani oleh body */
-            display: none; /* Sembunyikan secara default dengan CSS biasa */
+            height: 100%;
+            display: flex;
             flex-direction: column;
             align-items: center;
-            text-align: center;
-            pointer-events: auto; /* Agar bisa di-scroll */
-
-            /* Scrollbar kustom agar sesuai tema */
-            scrollbar-width: thin;
-            scrollbar-color: #d4af37 #000;
+            justify-content: space-evenly; /* Evenly distribute content vertically */
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
-        /* Hapus scrollbar kustom dari #cursed-content karena sekarang scroll di handle oleh body */
-        /*
-        #cursed-content::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        #cursed-content::-webkit-scrollbar-track {
-             background: #000;
-        }
-
-        #cursed-content::-webkit-scrollbar-thumb {
-            background-color: #d4af37;
-            border-radius: 4px;
-            border: 1px solid #000;
-        }
-        */
-        
-        /* Terapkan scrollbar kustom ke body saat halaman informasi aktif */
+        /* Lock body scroll when this page is active */
         body.cursed-active {
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: #d4af37 #000;
+            overflow: hidden;
         }
 
-        body.cursed-active::-webkit-scrollbar {
-            width: 8px;
-        }
+        /* --- DARK GREY & GLOWING TEXT LOGIC --- */
 
-        body.cursed-active::-webkit-scrollbar-track {
-             background: #000;
-        }
-
-        body.cursed-active::-webkit-scrollbar-thumb {
-            background-color: #d4af37;
-            border-radius: 4px;
-            border: 1px solid #000;
-        }
-
-
-        /* Gaya dasar untuk teks di halaman informasi */
         .info-text {
-            color: #000000; /* Warna hitam dasar */
-            transition: all 0.3s ease;
+            color: #000000; /* Basic black color */
+            transition: color 0.3s ease, text-shadow 0.3s ease;
         }
 
-        /* Gaya saat teks terkena cahaya (ditambahkan lewat JS) */
         .info-text.glowing {
-            color: #ffd700; /* Warna emas terang */
-            text-shadow: 0 0 10px #ffd700, 0 0 20px #d4af37, 0 0 30px #d4af37; /* Efek bercahaya */
+            color: #ffd700; /* Bright golden color when highlighted */
+            text-shadow: 0 0 10px #ffd700, 0 0 20px #d4af37, 0 0 30px #d4af37;
         }
         
         .info-title {
              font-family: 'Cinzel', serif;
              font-weight: bold;
-             margin-bottom: 1.5rem;
         }
 
-        /* Gaya khusus untuk elemen di dalam halaman informasi */
-        #cursed-content .lore-img {
-            filter: brightness(0.8) contrast(1.2);
-            opacity: 0.9;
-        }
-
+        /* Special styles for info page borders and visual elements */
         #cursed-content .nft-placeholder, 
         #cursed-content .team-placeholder {
-             background-color: rgba(212, 175, 55, 0.1);
-             border-color: #d4af37;
-             box-shadow: inset 0 0 15px rgba(212, 175, 55, 0.2);
+             background-color: rgba(0, 0, 0, 0.3);
+             border-color: #555555;
+             transition: all 0.3s ease;
+        }
+
+        /* Make borders/lines glow gold if text is glowing */
+        .glowing .nft-placeholder, 
+        .glowing .team-placeholder {
+             border-color: #ffd700;
+             box-shadow: 0 0 10px rgba(255, 215, 0, 0.3), inset 0 0 10px rgba(255, 215, 0, 0.2);
         }
 
         #cursed-content .roadmap-point {
-            background-color: #d4af37;
-            box-shadow: 0 0 10px #d4af37;
+            background-color: #555555;
+            transition: all 0.3s ease;
+        }
+        .info-text.glowing .roadmap-point {
+            background-color: #ffd700;
+            box-shadow: 0 0 10px #ffd700;
         }
         
         #cursed-content .roadmap-line {
-            border-color: #d4af37;
+            border-color: #555555;
         }
-
-        /* Efek hover pada link sosial */
+        
         #cursed-content a svg {
-             color: #b8860b;
+             color: #000000;
              filter: drop-shadow(0 0 0 rgba(0,0,0,0));
              transition: all 0.3s ease;
         }
-        #cursed-content a:hover svg {
+        #cursed-content a:hover svg,
+        .glowing a svg {
             color: #ffd700;
             filter: drop-shadow(0 0 10px #ffd700);
         }
-        
-        #cursed-content footer {
-            color: #b8860b;
-            opacity: 0.8;
-        }
-
     </style>
 </head>
 <body>
 
-    <!-- Canvas Khusus Kursor Animasi Api -->
+    <!-- 15-second loading screen -->
+    <div id="loading-screen">
+        <canvas id="loadingCanvas" width="500" height="500"></canvas>
+        <p class="loading-text">LOADING...</p>
+    </div>
+
+    <!-- Animated flame cursor dedicated canvas -->
     <canvas id="cursorCanvas" class="cursor-canvas"></canvas>
 
-    <!-- Background Music -->
     <audio id="bgMusic" loop>
         <source src="https://raw.githubusercontent.com/fauzanbunz/beetlez/main/Mummy%20At%20Noon.mp3" type="audio/mpeg">
     </audio>
 
-    <!-- Sound Control Button -->
     <button id="muteBtn" class="sound-control">
-        <!-- Ikon Suara Menyala (Awalnya Tampil) -->
+        <!-- Sound On Icon (Initially visible) -->
         <svg id="icon-unmuted" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5 10v4a2 2 0 002 2h2.236l4.328 4.329a1 1 0 001.707-.707V4.379a1 1 0 00-1.707-.707L9.236 10H7a2 2 0 00-2 2z"></path>
         </svg>
-        <!-- Ikon Suara Mati (Awalnya Sembunyi) -->
+        <!-- Sound Off Icon (Initially hidden) -->
         <svg id="icon-muted" class="hidden w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clip-rule="evenodd"></path>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
         </svg>
     </button>
 
-    <!-- The main container -->
+    <!-- Main container (Landing Page) -->
     <main class="tomb-wall">
-        <!-- Canvas untuk Kumbang (z-index 5) -->
         <canvas id="beetleCanvas"></canvas>
-
-        <!-- Canvas untuk Api (DIPINDAHKAN KE HALAMAN INFORMASI) -->
-        <!-- <canvas id="flameCanvasLeft" class="flame-canvas"></canvas> -->
-        <!-- <canvas id="flameCanvasRight" class="flame-canvas"></canvas> -->
-
-        <!-- The overlay that applies the torch light effect (z-index 10) -->
         <div class="darkness-overlay" id="darkness"></div>
-
-        <!-- The interactive button -->
         <button class="curse-button" id="openCurseBtn">
             Open the Curse
         </button>
     </main>
 
-    <!-- Hidden message box for when the curse is opened (Popup awal) -->
+    <!-- Popup message box -->
     <div id="message-box">
         <img src="https://raw.githubusercontent.com/fauzanbunz/beetlez/main/vdsvdd.png" alt="Curse Title" class="mx-auto mb-4 max-w-full h-auto" style="max-height: 100px;">
         <p>You have awakened that which slumbered in the sands for millennia...</p>
@@ -443,88 +435,86 @@
         </button>
     </div>
 
-    <!-- Konten Baru: Halaman Dinding Pasir Terkutuk (Lore, NFT, dll) -->
-    <!-- Konten Baru: Halaman Informasi Terkutuk (Lore, NFT, dll) -->
-    <div id="cursed-content" class="p-8 relative">
-        <!-- Canvas untuk Api (DIPINDAHKAN KE SINI) -->
-        <!-- Posisinya akan diatur via CSS agar berada di bawah -->
-        <canvas id="flameCanvasLeft" class="flame-canvas"></canvas>
-        <canvas id="flameCanvasRight" class="flame-canvas"></canvas>
-
-        <!-- LORE -->
-        <section class="mb-12 max-w-2xl relative z-10 mt-40"> <!-- Tambahkan margin-top agar tidak tertutup api -->
-            <h2 class="text-3xl info-title info-text">The Ancient Lore</h2>
-            <img src="https://raw.githubusercontent.com/fauzanbunz/beetlez/main/vdsvdd.png" alt="Beetlez Lore" class="mx-auto mb-6 max-w-full h-auto lore-img" style="max-height: 150px;">
-            <p class="font-playfair text-lg leading-relaxed info-text">
-                In the age before light, the world was an ocean of black soil. The gods, restless, pulled Khabiru — the First Beetle — from the primordial dark. With strength to reshape the earth, Khabiru rolled a great celestial orb, setting it ablaze to become the sun. Thus, beetles became gods. <br><br>
-                "To roll forward without ceasing — that is the oldest prayer ever uttered." <br>— The Book of Khabiru, First Verse
-            </p>
-        </section>
-
-        <!-- NFT COLLECTION -->
-        <section class="mb-12 max-w-2xl relative z-10">
-            <h2 class="text-3xl info-title info-text">The NFT Collection</h2>
-            <p class="font-playfair text-lg leading-relaxed mb-6 info-text">
-                A collection of 10,000 unique, hand-drawn beetles, each with its own divine traits and ancient powers, waiting to be discovered in the sands of the metaverse.
-            </p>
-            <!-- Placeholder gambar NFT -->
-            <div class="flex justify-center gap-6">
-                <div class="w-24 h-24 nft-placeholder rounded-lg border-2"></div>
-                <div class="w-24 h-24 nft-placeholder rounded-lg border-2"></div>
-                <div class="w-24 h-24 nft-placeholder rounded-lg border-2"></div>
-            </div>
-        </section>
-
-        <!-- ROADMAP -->
-        <section class="mb-12 max-w-2xl relative z-10">
-            <h2 class="text-3xl info-title info-text">The Roadmap</h2>
-            <ul class="font-playfair text-lg leading-relaxed text-left inline-block border-l-2 roadmap-line pl-6">
-                <li class="mb-4 relative info-text"><span class="absolute -left-[1.6rem] top-1 w-4 h-4 roadmap-point rounded-full"></span><span class="font-bold block mb-1">Phase 1: The Awakening</span> Community Building & Lore Reveal</li>
-                <li class="mb-4 relative info-text"><span class="absolute -left-[1.6rem] top-1 w-4 h-4 roadmap-point rounded-full"></span><span class="font-bold block mb-1">Phase 2: The Unearthing</span> NFT Minting & Reveal</li>
-                <li class="mb-4 relative info-text"><span class="absolute -left-[1.6rem] top-1 w-4 h-4 roadmap-point rounded-full"></span><span class="font-bold block mb-1">Phase 3: The Ascension</span> DAO Formation & Merch</li>
-                <li class="mb-4 relative info-text"><span class="absolute -left-[1.6rem] top-1 w-4 h-4 roadmap-point rounded-full"></span><span class="font-bold block mb-1">Phase 4: The Eternal Kingdom</span> Metaverse Integration & Game</li>
-            </ul>
-        </section>
-
-        <!-- TEAM -->
-        <section class="mb-12 max-w-2xl relative z-10">
-            <h2 class="text-3xl info-title info-text">The Team</h2>
-            <div class="flex justify-center gap-12">
-                <div class="text-center">
-                    <div class="w-24 h-24 team-placeholder rounded-full mx-auto mb-3 overflow-hidden border-2">
-                        <!-- Placeholder Foto -->
-                        <img src="uploaded:image_9bc426.jpg-36ab1201-d590-48c5-a511-a8f682f7f15d" alt="Pharaoh Fauzan" class="w-full h-full object-cover opacity-80">
-                    </div>
-                    <p class="font-bold font-cinzel text-xl info-text">Pharaoh Fauzan</p>
-                    <p class="text-sm font-playfair info-text">Founder & Artist</p>
-                </div>
-                <div class="text-center">
-                    <div class="w-24 h-24 team-placeholder rounded-full mx-auto mb-3 relative overflow-hidden border-2">
-                        <!-- Placeholder Foto -->
-                        <svg class="w-full h-full text-[#d4af37] p-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                    </div>
-                    <p class="font-bold font-cinzel text-xl info-text">Scribe Steve</p>
-                    <p class="text-sm font-playfair info-text">Developer</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- SOCIAL MEDIA -->
-        <section class="mb-16 max-w-2xl relative z-10">
-            <h2 class="text-3xl info-title info-text">Join the Curse</h2>
-            <div class="flex justify-center gap-8">
-                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" class="cursor-none group">
-                    <svg class="w-10 h-10 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
-                </a>
-                <a href="https://discord.com" target="_blank" rel="noopener noreferrer" class="cursor-none group">
-                    <svg class="w-10 h-10 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.118.098.246.198.373.292a.077.077 0 01-.006.128 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.106c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.086 2.176 2.419 0 1.334-.965 2.419-2.176 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.086 2.176 2.419 0 1.334-.966 2.419-2.176 2.419z"/></svg>
-                </a>
-            </div>
-        </section>
+    <!-- Cursed info page (Locked, full screen layout) -->
+    <div id="cursed-content">
         
-        <footer class="pb-8 info-text text-sm relative z-10">
-            © 2023 Beetlez. All rights reserved.
-        </footer>
+        <!-- Background and flame container (Fixed position) -->
+        <div class="cursed-background-container">
+            <canvas id="flameCanvasLeft" class="flame-canvas"></canvas>
+            <canvas id="flameCanvasRight" class="flame-canvas"></canvas>
+        </div>
+
+        <!-- Info Text (Static/Locked, 3 Columns) -->
+        <div class="cursed-text-content text-center">
+            
+            <!-- Lore Title -->
+            <section class="w-full max-w-3xl mt-4">
+                <h2 class="text-3xl info-title info-text mb-2">The Ancient Lore</h2>
+                <p class="font-playfair text-base leading-snug info-text">
+                    In the age before light, the world was an ocean of black soil. The gods, restless, pulled Khabiru — the First Beetle — from the primordial dark. With strength to reshape the earth, Khabiru rolled a great celestial orb, setting it ablaze to become the sun. Thus, beetles became gods.<br>
+                    <span class="italic text-sm">"To roll forward without ceasing — that is the oldest prayer ever uttered." — The Book of Khabiru</span>
+                </p>
+            </section>
+
+            <!-- 3 Column Layout -->
+            <div class="flex flex-row justify-center items-start w-full gap-8 my-4">
+                
+                <!-- NFT Collection -->
+                <section class="flex-1 flex flex-col items-center">
+                    <h2 class="text-xl info-title info-text mb-4">The NFT Collection</h2>
+                    <div class="flex gap-3">
+                        <div class="w-20 h-20 nft-placeholder rounded-lg border-2"></div>
+                        <div class="w-20 h-20 nft-placeholder rounded-lg border-2"></div>
+                    </div>
+                </section>
+
+                <!-- Roadmap -->
+                <section class="flex-1 flex flex-col items-center">
+                    <h2 class="text-xl info-title info-text mb-4">The Roadmap</h2>
+                    <ul class="font-playfair text-sm leading-loose text-left inline-block border-l-2 roadmap-line pl-4">
+                        <li class="relative info-text"><span class="absolute -left-[1.35rem] top-2 w-3 h-3 roadmap-point rounded-full"></span><span class="font-bold">Phase 1:</span> Awakening</li>
+                        <li class="relative info-text"><span class="absolute -left-[1.35rem] top-2 w-3 h-3 roadmap-point rounded-full"></span><span class="font-bold">Phase 2:</span> Unearthing</li>
+                        <li class="relative info-text"><span class="absolute -left-[1.35rem] top-2 w-3 h-3 roadmap-point rounded-full"></span><span class="font-bold">Phase 3:</span> Ascension</li>
+                        <li class="relative info-text"><span class="absolute -left-[1.35rem] top-2 w-3 h-3 roadmap-point rounded-full"></span><span class="font-bold">Phase 4:</span> Eternal Kingdom</li>
+                    </ul>
+                </section>
+
+                <!-- Team -->
+                <section class="flex-1 flex flex-col items-center">
+                    <h2 class="text-xl info-title info-text mb-4">The Team</h2>
+                    <div class="flex gap-6">
+                        <div class="text-center info-text">
+                            <div class="w-16 h-16 team-placeholder rounded-full mx-auto mb-2 overflow-hidden border-2 p-3">
+                                <svg class="w-full h-full" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                            </div>
+                            <p class="font-bold font-cinzel text-sm">Pharaoh Fauzan</p>
+                        </div>
+                        <div class="text-center info-text">
+                            <div class="w-16 h-16 team-placeholder rounded-full mx-auto mb-2 overflow-hidden border-2 p-3">
+                                <svg class="w-full h-full" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                            </div>
+                            <p class="font-bold font-cinzel text-sm">Scribe Steve</p>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- Social Media and Footer -->
+            <section class="flex flex-col items-center mb-4">
+                <div class="flex justify-center gap-8 mb-4">
+                    <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" class="cursor-none">
+                        <svg class="w-8 h-8 info-text" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+                    </a>
+                    <a href="https://discord.com" target="_blank" rel="noopener noreferrer" class="cursor-none">
+                        <svg class="w-8 h-8 info-text" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.118.098.246.198.373.292a.077.077 0 01-.006.128 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.106c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.086 2.176 2.419 0 1.334-.965 2.419-2.176 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.086 2.176 2.419 0 1.334-.966 2.419-2.176 2.419z"/></svg>
+                    </a>
+                </div>
+                <footer class="info-text text-xs">
+                    © 2026 Beetlez. All rights reserved.
+                </footer>
+            </section>
+        </div>
     </div>
 
     <script>
@@ -547,9 +537,51 @@
         let cursorX = window.innerWidth / 2;
         let cursorY = window.innerHeight / 2;
         
-        // Variabel status kutukan
+        // Curse status variables
         let isCursed = false;
         let cursorFlameScale = 1;
+
+        // --- Loading screen logic ---
+        const loadingScreen = document.getElementById('loading-screen');
+        const loadingCanvas = document.getElementById('loadingCanvas');
+        const ctxLoading = loadingCanvas.getContext('2d');
+        const loadingSprite = new Image();
+        loadingSprite.src = 'https://raw.githubusercontent.com/fauzanbunz/beetlez/main/loading.png';
+        
+        let loadingFrameCount = 0;
+        let isLoading = true;
+
+        function animateLoadingSprite() {
+            if (!isLoading) return; // Stop animation when loading is done
+            
+            ctxLoading.clearRect(0, 0, loadingCanvas.width, loadingCanvas.height);
+            
+            if (loadingSprite.complete && loadingSprite.naturalWidth > 0) {
+                loadingFrameCount++;
+                // 2 frame animation. Switch frame every 15 cycles
+                let currentFrame = Math.floor(loadingFrameCount / 15) % 2; 
+                let frameWidth = loadingSprite.width / 2;
+                let frameHeight = loadingSprite.height;
+
+                // Draw on the entire 500x500 canvas
+                ctxLoading.drawImage(
+                    loadingSprite,
+                    currentFrame * frameWidth, 0, frameWidth, frameHeight,
+                    0, 0, 500, 500
+                );
+            }
+            requestAnimationFrame(animateLoadingSprite);
+        }
+        animateLoadingSprite();
+
+        // Fade out loading screen after 15 seconds
+        setTimeout(() => {
+            loadingScreen.style.opacity = '0';
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+                isLoading = false;
+            }, 1000); // Wait for 1s fade-out transition
+        }, 15000);
 
         // Function to animate the torch flickering effect
         function animateTorch() {
@@ -557,12 +589,12 @@
             let flickerRadius, wobbleX, wobbleY;
             
             if (isCursed) {
-                // Efek lebih agresif saat terkutuk
+                // More aggressive effect when cursed
                 flickerRadius = 280 + Math.random() * 40;
                 wobbleX = (Math.random() - 0.5) * 20;
                 wobbleY = (Math.random() - 0.5) * 20;
             } else {
-                // Efek normal
+                // Normal effect
                 flickerRadius = 240 + Math.random() * 20;
                 wobbleX = (Math.random() - 0.5) * 10;
                 wobbleY = (Math.random() - 0.5) * 10;
@@ -577,9 +609,9 @@
             requestAnimationFrame(animateTorch);
         }
 
-        // Logic to update the torch location and check for button intersection
+        // Logic to update torch position and check button intersection
         function updateTorchLocation(e) {
-            // Handle touch devices vs mouse
+            // Handle touch devices and mouse
             if (e.type && e.type.includes('touch')) {
                 cursorX = e.touches[0].clientX;
                 cursorY = e.touches[0].clientY;
@@ -594,7 +626,7 @@
 
             // Check if cursor is over the button area to show it
             const btnRect = curseBtn.getBoundingClientRect();
-            // Use a slightly larger detection area for better UX
+            // Use slightly larger detection area for UX
             const detectionPadding = 50; 
             if (
                 cursorX >= btnRect.left - detectionPadding &&
@@ -604,40 +636,38 @@
                 !isCursed
             ) {
                 curseBtn.classList.add('show');
-                cursorFlameScale = 1.5; // Flame membesar saat di dekat tombol
+                cursorFlameScale = 1.5; // Flame grows near button
             } else {
                 curseBtn.classList.remove('show');
-                cursorFlameScale = 1; // Ukuran normal
+                cursorFlameScale = 1; // Normal size
             }
         }
 
         // Listen for mouse movements
         document.addEventListener('mousemove', updateTorchLocation);
-        
         // Listen for touch movements for mobile compatibility
         document.addEventListener('touchmove', updateTorchLocation);
-        document.addEventListener('touchstart', updateTorchLocation);
 
-        // --- Logika Teks Bercahaya di Halaman Informasi ---
+        // --- Glowing Text Logic on Info Page ---
         const infoTexts = document.querySelectorAll('.info-text');
-        const glowRadius = 150; // Jarak kursor untuk membuat teks bercahaya
+        const glowRadius = 150; // Cursor distance to make text glow
 
         function checkTextGlow() {
-            // Hanya jalankan jika halaman informasi sedang aktif
+            // Execute only if info page is active
             if (!isCursed) return;
 
             infoTexts.forEach(text => {
                 const rect = text.getBoundingClientRect();
-                // Hitung titik tengah elemen teks
+                // Calculate center point of text element
                 const textCenterX = rect.left + rect.width / 2;
                 const textCenterY = rect.top + rect.height / 2;
 
-                // Hitung jarak antara kursor dan titik tengah teks
+                // Calculate distance between cursor and text center
                 const dx = cursorX - textCenterX;
                 const dy = cursorY - textCenterY;
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
-                // Jika dalam radius, tambahkan kelas 'glowing'
+                // Add 'glowing' class if within radius
                 if (distance < glowRadius) {
                     text.classList.add('glowing');
                 } else {
@@ -646,17 +676,17 @@
             });
         }
         
-        // Panggil fungsi cek glow setiap kali kursor bergerak
+        // Call glow check function whenever cursor moves
         document.addEventListener('mousemove', checkTextGlow);
         document.addEventListener('touchmove', checkTextGlow);
 
-        // Handle opening the curse (Button Click)
+        // Process to open the curse (Button click)
         curseBtn.addEventListener('click', () => {
             // Visual effect: flash the screen
             darkness.style.background = 'rgba(255, 255, 255, 0.8)';
             
             setTimeout(() => {
-                // Restore darkness but keep the box open, make light angry red AND keep the torch animation
+                // Restore darkness but keep box open, change light to angry red, maintain torch animation
                 darkness.style.background = `radial-gradient(
                     circle var(--torch-radius) at calc(var(--cursor-x) + var(--torch-wobble-x)) calc(var(--cursor-y) + var(--torch-wobble-y)),
                     rgba(255, 0, 0, 0.2) 0%, 
@@ -666,49 +696,48 @@
                 )`; 
                 
                 messageBox.classList.add('show');
-                curseBtn.style.display = 'none'; // Hide the button permanently
+                curseBtn.style.display = 'none'; // Hide button permanently
             }, 150);
         });
 
-        // Handle closing the message and showing the cursed content
+        // Process to close message and display cursed content
         closeMsgBtn.addEventListener('click', () => {
              messageBox.classList.remove('show');
-             // PENTING: Jangan matikan efek darkness.style.background = ''; di sini.
              
-             // Tampilkan konten terkutuk setelah pesan ditutup
+             // Show cursed content after message closes
              setTimeout(() => {
-                 // Gunakan style display flex untuk menampilkan
+                 // Use display flex to show
                  cursedContent.style.display = 'flex';
-                 // Tambahkan class ke body agar bisa di-scroll
+                 // Add class to body to allow scrolling
                  document.body.classList.add('cursed-active');
                  
-                 isCursed = true; // Set status kutukan
+                 isCursed = true; // Set curse status
                  
-                 // Ubah obor menjadi lebih besar dan tidak stabil sebagai tanda "terkutuk"
+                 // Change torch to be larger and unstable as "cursed" sign
                  darkness.style.setProperty('--torch-radius', '300px');
              }, 500);
         });
 
-        // --- Logika Audio Latar Belakang ---
+        // --- Background Audio Logic ---
         const bgMusic = document.getElementById('bgMusic');
         const muteBtn = document.getElementById('muteBtn');
         const iconUnmuted = document.getElementById('icon-unmuted');
         const iconMuted = document.getElementById('icon-muted');
 
-        let isMuted = false; // Dimulai dalam keadaan tidak mute (autoplay jika bisa)
+        let isMuted = false; // Start unmuted (autoplay if possible)
 
         muteBtn.addEventListener('click', () => {
             if (isMuted) {
-                // Mainkan musik
+                // Play music
                 bgMusic.play().then(() => {
                     isMuted = false;
                     iconMuted.classList.add('hidden');
                     iconUnmuted.classList.remove('hidden');
                 }).catch(err => {
-                    console.log("Audio tidak dapat diputar:", err);
+                    console.log("Cannot play audio:", err);
                 });
             } else {
-                // Jeda musik
+                // Pause music
                 bgMusic.pause();
                 isMuted = true;
                 iconUnmuted.classList.add('hidden');
@@ -716,24 +745,24 @@
             }
         });
 
-        // Initialize on load
+        // Initialization on load
         window.onload = () => {
             // Set initial position
             updateTorchLocation({ clientX: window.innerWidth / 2, clientY: window.innerHeight / 2 });
-            // Start the flame animation loop
+            // Start flame animation loop
             animateTorch();
 
-            // Coba putar musik secara otomatis
+            // Try to autoplay music automatically
             bgMusic.play().catch(err => {
-                console.log("Audio autoplay diblokir oleh browser. Pengguna harus berinteraksi dulu.", err);
-                // Jika autoplay gagal, ubah status jadi muted
+                console.log("Audio autoplay blocked by browser. User interaction needed first.", err);
+                // Change status to mute if autoplay fails
                 isMuted = true;
                 iconUnmuted.classList.add('hidden');
                 iconMuted.classList.remove('hidden');
             });
         };
 
-        // --- Logika Spritesheet Api ---
+        // --- Flame Spritesheet Logic ---
         const flameCanvasLeft = document.getElementById('flameCanvasLeft');
         const ctxFlameLeft = flameCanvasLeft.getContext('2d');
         const flameCanvasRight = document.getElementById('flameCanvasRight');
@@ -742,15 +771,15 @@
         const flameImg = new Image();
         flameImg.src = 'https://raw.githubusercontent.com/fauzanbunz/beetlez/main/flames.png';
 
-        // Konfigurasi frame spritesheet
+        // Spritesheet frame configuration
         const flameFrameWidth = 333.33;
         const flameFrameHeight = 583.33;
-        const totalFlameFrames = 12; // Jumlah frame diubah jadi 12
+        const totalFlameFrames = 12; // 12 frames
         let currentFlameFrame = 0;
-        let flameAnimationSpeed = 3; // Kecepatan animasi sedikit diperlambat agar lebih halus dengan 12 frame
+        let flameAnimationSpeed = 3; // Slow animation speed slightly for smoother 12 frames
         let flameCounter = 0;
 
-        // Set ukuran canvas internal sesuai ukuran frame asli untuk kualitas terbaik
+        // Set internal canvas size to original frame size for best quality
         flameCanvasLeft.width = flameFrameWidth;
         flameCanvasLeft.height = flameFrameHeight;
         flameCanvasRight.width = flameFrameWidth;
@@ -758,30 +787,29 @@
 
         function animateFlames() {
             if (flameImg.complete && flameImg.naturalWidth > 0) {
-                // Bersihkan canvas
+                // Clear canvas
                 ctxFlameLeft.clearRect(0, 0, flameCanvasLeft.width, flameCanvasLeft.height);
                 ctxFlameRight.clearRect(0, 0, flameCanvasRight.width, flameCanvasRight.height);
                 ctxCursor.clearRect(0, 0, cursorCanvas.width, cursorCanvas.height);
 
-                // Hitung posisi X frame saat ini di spritesheet
-                // Frame disusun horizontal
+                // Calculate X position of current frame in spritesheet
                 let srcX = Math.floor(currentFlameFrame) * flameFrameWidth;
 
-                // Gambar frame ke canvas kiri
+                // Draw frame to left canvas
                 ctxFlameLeft.drawImage(
                     flameImg,
-                    srcX, 0, flameFrameWidth, flameFrameHeight, // Source (dari spritesheet)
-                    0, 0, flameFrameWidth, flameFrameHeight   // Destination (di canvas)
+                    srcX, 0, flameFrameWidth, flameFrameHeight, // Source
+                    0, 0, flameFrameWidth, flameFrameHeight   // Destination
                 );
 
-                // Gambar frame ke canvas kanan
+                // Draw frame to right canvas
                 ctxFlameRight.drawImage(
                     flameImg,
                     srcX, 0, flameFrameWidth, flameFrameHeight,
                     0, 0, flameFrameWidth, flameFrameHeight
                 );
 
-                // Gambar frame sebagai Kursor
+                // Draw frame as Cursor
                 let cWidth = 60 * cursorFlameScale;
                 let cHeight = 105 * cursorFlameScale;
                 ctxCursor.drawImage(
@@ -790,7 +818,7 @@
                     cursorX - cWidth / 2, cursorY - cHeight / 1.5, cWidth, cHeight
                 );
 
-                // Update frame
+                // Update frames
                 flameCounter++;
                 if (flameCounter % flameAnimationSpeed === 0) {
                      currentFlameFrame = (currentFlameFrame + 1) % totalFlameFrames;
@@ -798,51 +826,40 @@
             }
             requestAnimationFrame(animateFlames);
         }
-        // Mulai animasi api
+        // Start flame animation
         animateFlames();
 
-
-        // --- Logika Spritesheet Kumbang ---
+        // --- Beetle Spritesheet Logic ---
         const canvas = document.getElementById('beetleCanvas');
         const ctx = canvas.getContext('2d');
 
-        // Menyesuaikan ukuran canvas ke layar penuh
+        // Fit canvas size to full screen
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         }
         window.addEventListener('resize', resizeCanvas);
-        resizeCanvas(); // Pastikan ukuran canvas sudah benar sebelum membuat kumbang
+        resizeCanvas();
 
         const beetleImg = new Image();
-        // Mengambil gambar dari raw github
+        // Get image from github raw
         beetleImg.src = 'https://raw.githubusercontent.com/fauzanbunz/beetlez/main/bweewewewewe.png';
 
         const beetles = [];
-        const numBeetles = 5; // Jumlah kumbang 5
-        const fleeRadius = 150; // Jarak di mana kumbang mulai kabur dari kursor
+        const numBeetles = 5; // 5 beetles
+        const fleeRadius = 150; // Distance beetles start fleeing from cursor
 
-        // Membuat 5 kumbang di tengah atas halaman (kembali ke asal)
+        // Create 5 beetles scattered across the screen
         for (let i = 0; i < numBeetles; i++) {
-            // Tentukan titik tengah layar
-            const centerX = window.innerWidth / 2;
-            
-            // Posisi X: di tengah dengan sedikit sebaran acak horizontal
-            let startX = centerX + (Math.random() - 0.5) * 100; // Sebaran acak 100px
-
-            // Posisi Y: di bagian atas halaman (misal 100px dari atas) dengan sedikit sebaran acak vertikal
-            let startY = 100 + Math.random() * 50;
-            
             beetles.push({
-                x: startX,
-                y: startY,
-                originalX: startX, // Posisi awal
-                originalY: startY,
-                speed: 3 + Math.random() * 2, // Kecepatan kabur
-                angle: Math.random() * Math.PI * 2, // Sudut awal acak
-                isFleeing: false, // Status apakah sedang kabur
-                vx: 0, // Kecepatan X saat kabur
-                vy: 0  // Kecepatan Y saat kabur
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                speed: 4 + Math.random() * 2, // Flee speed
+                wanderSpeed: 0.5 + Math.random() * 1.5, // Casual wandering speed
+                angle: Math.random() * Math.PI * 2, // Random initial angle
+                isFleeing: false, 
+                vx: 0, 
+                vy: 0  
             });
         }
 
@@ -851,74 +868,65 @@
         function animateBeetles() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Tunggu sampai gambar berhasil dimuat
+            // Wait until image successfully loads
             if (beetleImg.complete && beetleImg.naturalWidth > 0) {
                 frameCountBeetle++;
-                // Membagi ukuran asli gambar karena berupa spritesheet 2 frame bersampingan
+                // Divide original image size due to 2-frame spritesheet
                 const frameWidth = beetleImg.width / 2; 
                 const frameHeight = beetleImg.height;
-                const drawSize = 40; // Ukuran tampilan akhir kumbang di layar (kumbang kecil)
+                const drawSize = 40; // Final display size of beetles on screen
 
                 for (let b of beetles) {
-                    // Hitung jarak ke kursor
+                    // Calculate distance to cursor
                     let dx = b.x - cursorX;
                     let dy = b.y - cursorY;
                     let dist = Math.sqrt(dx*dx + dy*dy);
 
-                    // Jika belum kabur dan terkena kursor, mulai kabur
-                    if (!b.isFleeing && dist < fleeRadius) {
+                    // If hit by cursor (within radius), flee away
+                    if (dist < fleeRadius) {
                         b.isFleeing = true;
-                        // Tentukan arah kabur (menjauh dari kursor)
-                        let moveX = (dx / dist) * b.speed;
-                        let moveY = (dy / dist) * b.speed;
-                        b.vx = moveX;
-                        b.vy = moveY;
-                        // Sudut menghadap arah kabur
-                        b.angle = Math.atan2(moveY, moveX);
-                    }
-
-                    // Logika pergerakan dan animasi
-                    if (b.isFleeing) {
-                        // Terus bergerak sesuai arah kabur
-                        b.x += b.vx;
-                        b.y += b.vy;
-
-                        // Gambar dengan animasi (frame berubah-ubah)
-                        let currentFrame = Math.floor(frameCountBeetle / 8) % 2;
-                        ctx.save();
-                        ctx.translate(b.x, b.y);
-                        ctx.rotate(b.angle + Math.PI / 2); 
-                        ctx.drawImage(
-                            beetleImg, 
-                            currentFrame * frameWidth, 0, frameWidth, frameHeight, 
-                            -drawSize / 2, -drawSize / 2, drawSize, drawSize
-                        );
-                        ctx.restore();
+                        b.vx = (dx / dist) * b.speed;
+                        b.vy = (dy / dist) * b.speed;
                     } else {
-                        // Diam (tidak bergerak, frame statis)
-                        ctx.save();
-                        ctx.translate(b.x, b.y);
-                        // Gambar frame pertama saja (diam)
-                        ctx.drawImage(
-                            beetleImg, 
-                            0, 0, frameWidth, frameHeight, // Selalu ambil frame ke-0
-                            -drawSize / 2, -drawSize / 2, drawSize, drawSize
-                        );
-                        ctx.restore();
+                        // If safe, move randomly and casually
+                        b.isFleeing = false;
+                        // Occasionally change angle slightly to turn naturally
+                        if (Math.random() < 0.05) {
+                            b.angle += (Math.random() - 0.5) * 1.0; 
+                        }
+                        b.vx = Math.cos(b.angle) * b.wanderSpeed;
+                        b.vy = Math.sin(b.angle) * b.wanderSpeed;
                     }
 
-                    // Reset kumbang yang sudah jauh keluar layar agar muncul lagi secara acak
-                    if (b.isFleeing && (b.x < -100 || b.x > canvas.width + 100 || b.y < -100 || b.y > canvas.height + 100)) {
-                        b.isFleeing = false;
-                        b.x = Math.random() * canvas.width;
-                        b.y = Math.random() * canvas.height;
-                    }
+                    // Apply speed
+                    b.x += b.vx;
+                    b.y += b.vy;
+                    // Rotate beetle towards its movement direction
+                    b.angle = Math.atan2(b.vy, b.vx);
+
+                    // Keep beetles from disappearing off screen (Looping / Wrap around)
+                    if (b.x < -50) b.x = canvas.width + 50;
+                    if (b.x > canvas.width + 50) b.x = -50;
+                    if (b.y < -50) b.y = canvas.height + 50;
+                    if (b.y > canvas.height + 50) b.y = -50;
+
+                    // Draw with animation (frame changes while moving)
+                    let currentFrame = Math.floor(frameCountBeetle / 8) % 2;
+                    ctx.save();
+                    ctx.translate(b.x, b.y);
+                    ctx.rotate(b.angle + Math.PI / 2); 
+                    ctx.drawImage(
+                        beetleImg, 
+                        currentFrame * frameWidth, 0, frameWidth, frameHeight, 
+                        -drawSize / 2, -drawSize / 2, drawSize, drawSize
+                    );
+                    ctx.restore();
                 }
             }
             requestAnimationFrame(animateBeetles);
         }
         
-        // Memulai animasi kumbang
+        // Start beetle animation
         animateBeetles();
 
     </script>
