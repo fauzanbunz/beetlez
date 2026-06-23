@@ -66,20 +66,14 @@
         }
 
         /* Custom cursor styling */
-        .custom-cursor {
+        .cursor-canvas {
             position: fixed;
             top: 0;
             left: 0;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: radial-gradient(circle, #fffbd1 0%, #ff8c00 50%, transparent 100%);
             pointer-events: none;
-            transform: translate(-50%, -50%);
-            z-index: 50;
+            z-index: 60;
             mix-blend-mode: screen;
-            filter: blur(2px);
-            transition: width 0.2s, height 0.2s, background 0.2s;
+            filter: drop-shadow(0 0 10px rgba(255, 140, 0, 0.5));
         }
 
         /* Styling for the main button */
@@ -218,7 +212,7 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 5; /* Kumbang di atas tembok, di bawah obor */
+            z-index: 7; /* Diubah menjadi 7 agar tampil di atas background informasi */
         }
 
         /* Gaya untuk Canvas Api - DIUBAH POSISINYA JADI ABSOLUTE */
@@ -330,7 +324,7 @@
 
         /* Gaya dasar untuk teks di halaman informasi */
         .info-text {
-            color: #b8860b; /* Warna emas dasar, sedikit gelap */
+            color: #000000; /* Warna hitam dasar */
             transition: all 0.3s ease;
         }
 
@@ -388,8 +382,8 @@
 </head>
 <body>
 
-    <!-- The physical custom cursor dot -->
-    <div class="custom-cursor" id="cursor"></div>
+    <!-- Canvas Khusus Kursor Animasi Api -->
+    <canvas id="cursorCanvas" class="cursor-canvas"></canvas>
 
     <!-- Background Music -->
     <audio id="bgMusic" loop>
@@ -523,7 +517,7 @@
                     <svg class="w-10 h-10 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
                 </a>
                 <a href="https://discord.com" target="_blank" rel="noopener noreferrer" class="cursor-none group">
-                    <svg class="w-10 h-10 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.118.098.246.198.373.292a.077.077 0 01-.006.128 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.106c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.086 2.176 2.419 0 1.334-.966 2.419-2.176 2.419z"/></svg>
+                    <svg class="w-10 h-10 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.118.098.246.198.373.292a.077.077 0 01-.006.128 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.106c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.086 2.176 2.419 0 1.334-.965 2.419-2.176 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.086 2.176 2.419 0 1.334-.966 2.419-2.176 2.419z"/></svg>
                 </a>
             </div>
         </section>
@@ -535,17 +529,27 @@
 
     <script>
         const darkness = document.getElementById('darkness');
-        const cursor = document.getElementById('cursor');
         const curseBtn = document.getElementById('openCurseBtn');
         const messageBox = document.getElementById('message-box');
         const closeMsgBtn = document.getElementById('closeMsgBtn');
         const cursedContent = document.getElementById('cursed-content');
+
+        const cursorCanvas = document.getElementById('cursorCanvas');
+        const ctxCursor = cursorCanvas.getContext('2d');
+
+        function resizeCursorCanvas() {
+            cursorCanvas.width = window.innerWidth;
+            cursorCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCursorCanvas);
+        resizeCursorCanvas();
 
         let cursorX = window.innerWidth / 2;
         let cursorY = window.innerHeight / 2;
         
         // Variabel status kutukan
         let isCursed = false;
+        let cursorFlameScale = 1;
 
         // Function to animate the torch flickering effect
         function animateTorch() {
@@ -588,10 +592,6 @@
             darkness.style.setProperty('--cursor-x', `${cursorX}px`);
             darkness.style.setProperty('--cursor-y', `${cursorY}px`);
 
-            // Move the custom cursor dot
-            cursor.style.left = `${cursorX}px`;
-            cursor.style.top = `${cursorY}px`;
-
             // Check if cursor is over the button area to show it
             const btnRect = curseBtn.getBoundingClientRect();
             // Use a slightly larger detection area for better UX
@@ -600,19 +600,14 @@
                 cursorX >= btnRect.left - detectionPadding &&
                 cursorX <= btnRect.right + detectionPadding &&
                 cursorY >= btnRect.top - detectionPadding &&
-                cursorY <= btnRect.bottom + detectionPadding
+                cursorY <= btnRect.bottom + detectionPadding &&
+                !isCursed
             ) {
                 curseBtn.classList.add('show');
-                // Change cursor style when near the button
-                cursor.style.width = '25px';
-                cursor.style.height = '25px';
-                cursor.style.background = 'radial-gradient(circle, #ff4500 0%, #8b0000 60%, transparent 100%)';
+                cursorFlameScale = 1.5; // Flame membesar saat di dekat tombol
             } else {
                 curseBtn.classList.remove('show');
-                // Reset cursor style
-                cursor.style.width = '20px';
-                cursor.style.height = '20px';
-                cursor.style.background = 'radial-gradient(circle, #fffbd1 0%, #ff8c00 50%, transparent 100%)';
+                cursorFlameScale = 1; // Ukuran normal
             }
         }
 
@@ -766,6 +761,7 @@
                 // Bersihkan canvas
                 ctxFlameLeft.clearRect(0, 0, flameCanvasLeft.width, flameCanvasLeft.height);
                 ctxFlameRight.clearRect(0, 0, flameCanvasRight.width, flameCanvasRight.height);
+                ctxCursor.clearRect(0, 0, cursorCanvas.width, cursorCanvas.height);
 
                 // Hitung posisi X frame saat ini di spritesheet
                 // Frame disusun horizontal
@@ -783,6 +779,15 @@
                     flameImg,
                     srcX, 0, flameFrameWidth, flameFrameHeight,
                     0, 0, flameFrameWidth, flameFrameHeight
+                );
+
+                // Gambar frame sebagai Kursor
+                let cWidth = 60 * cursorFlameScale;
+                let cHeight = 105 * cursorFlameScale;
+                ctxCursor.drawImage(
+                    flameImg,
+                    srcX, 0, flameFrameWidth, flameFrameHeight,
+                    cursorX - cWidth / 2, cursorY - cHeight / 1.5, cWidth, cHeight
                 );
 
                 // Update frame
@@ -814,10 +819,10 @@
         beetleImg.src = 'https://raw.githubusercontent.com/fauzanbunz/beetlez/main/bweewewewewe.png';
 
         const beetles = [];
-        const numBeetles = 5; // Jumlah kumbang diubah jadi 5
+        const numBeetles = 5; // Jumlah kumbang 5
         const fleeRadius = 150; // Jarak di mana kumbang mulai kabur dari kursor
 
-        // Membuat 5 kumbang di tengah atas halaman
+        // Membuat 5 kumbang di tengah atas halaman (kembali ke asal)
         for (let i = 0; i < numBeetles; i++) {
             // Tentukan titik tengah layar
             const centerX = window.innerWidth / 2;
@@ -831,7 +836,7 @@
             beetles.push({
                 x: startX,
                 y: startY,
-                originalX: startX, // Posisi awal (tidak digunakan lagi untuk kembali)
+                originalX: startX, // Posisi awal
                 originalY: startY,
                 speed: 3 + Math.random() * 2, // Kecepatan kabur
                 angle: Math.random() * Math.PI * 2, // Sudut awal acak
@@ -902,7 +907,7 @@
                         ctx.restore();
                     }
 
-                    // Opsional: Reset kumbang yang sudah jauh keluar layar agar muncul lagi
+                    // Reset kumbang yang sudah jauh keluar layar agar muncul lagi secara acak
                     if (b.isFleeing && (b.x < -100 || b.x > canvas.width + 100 || b.y < -100 || b.y > canvas.height + 100)) {
                         b.isFleeing = false;
                         b.x = Math.random() * canvas.width;
